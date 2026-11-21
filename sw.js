@@ -1,4 +1,4 @@
-const CACHE_NAME = 'presensi-mengaji-v1';
+const CACHE_NAME = 'presensi-mengaji-v2';
 const ASET_INTI = [
   './',
   './index.html',
@@ -9,7 +9,7 @@ const ASET_INTI = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASET_INTI))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASET_INTI)).catch(() => {})
   );
   self.skipWaiting();
 });
@@ -23,12 +23,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Jaringan dulu (supaya pembaruan aplikasi langsung terpakai), cadangan dari cache saat offline.
 self.addEventListener('fetch', (event) => {
-  // Jangan cache permintaan ke Firestore/Google; hanya cache file aplikasi sendiri.
-  if (event.request.url.includes('firestore.googleapis.com') || event.request.url.includes('google')) {
+  if (event.request.method !== 'GET') return;
+  const url = event.request.url;
+  if (url.includes('firestore.googleapis.com') || url.includes('googleapis.com') || url.includes('gstatic.com')) {
     return;
   }
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((res) => {
+        const salinan = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, salinan));
+        return res;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
