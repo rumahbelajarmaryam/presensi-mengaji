@@ -539,16 +539,18 @@ function setStatus(muridId, status) {
   const statusBaru = entriSaatIni.status === status ? null : status; // tap lagi = batalkan
 
   const refDok = db.collection('presensi').doc(tanggalDipilih);
-  const kunci = `entri.${muridId}`;
+  // Catatan: pakai objek bersarang (bukan kunci "entri.id") agar tersimpan di dalam field entri.
   if (statusBaru === null) {
-    refDok.set({ [kunci]: firebase.firestore.FieldValue.delete() }, { merge: true });
+    refDok.set({ entri: { [muridId]: firebase.firestore.FieldValue.delete() } }, { merge: true });
   } else {
     refDok.set({
-      [kunci]: {
-        status: statusBaru,
-        progres: statusBaru === 'H' ? (entriSaatIni.progres || null) : null,
-        guru: guru || null,
-        waktu: Date.now()
+      entri: {
+        [muridId]: {
+          status: statusBaru,
+          progres: statusBaru === 'H' ? (entriSaatIni.progres || null) : null,
+          guru: guru || null,
+          waktu: Date.now()
+        }
       }
     }, { merge: true });
   }
@@ -561,9 +563,10 @@ function setProgres(muridId, progres) {
   const progresBaru = entriSaatIni.progres === progres ? null : progres;
 
   const refDok = db.collection('presensi').doc(tanggalDipilih);
-  const kunci = `entri.${muridId}`;
   refDok.set({
-    [kunci]: { ...entriSaatIni, progres: progresBaru, guru: guru || entriSaatIni.guru || null, waktu: Date.now() }
+    entri: {
+      [muridId]: { ...entriSaatIni, progres: progresBaru, guru: guru || entriSaatIni.guru || null, waktu: Date.now() }
+    }
   }, { merge: true });
 }
 
