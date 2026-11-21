@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Presensi Mengaji RBM</title>
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#166556" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Presensi Mengaji" />
+<style>
+  :root{
+    --hijau:#166556;
+    --hijau-muda:#1f8a73;
+    --bg:#f4f6f5;
+    --kartu:#ffffff;
+    --teks:#1c2b27;
+    --abu:#6b7b77;
+    --merah:#c0392b;
+    --kuning:#b8860b;
+    --biru:#2e6fb0;
+    --ungu:#7d4fb0;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--teks);
+    padding-bottom:70px;
+  }
+  header{
+    background:var(--hijau);
+    color:#fff;
+    padding:16px 16px 14px;
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  header h1{
+    margin:0 0 4px;
+    font-size:18px;
+    font-weight:700;
+  }
+  .sub-header{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .sub-header input[type=date], .sub-header select{
+    border:none;
+    border-radius:10px;
+    padding:8px 10px;
+    font-size:14px;
+    font-family:inherit;
+    background:rgba(255,255,255,0.92);
+    color:var(--teks);
+  }
+  .status-koneksi{
+    font-size:11px;
+    opacity:0.85;
+    margin-top:6px;
+  }
+  main{padding:12px;max-width:640px;margin:0 auto;}
+  .kartu{
+    background:var(--kartu);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:12px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06);
+  }
+  .label-kelompok{
+    font-size:12px;
+    font-weight:700;
+    color:var(--abu);
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:10px 0 4px;
+  }
+  .label-kelompok:first-child{padding-top:0;}
+  .baris-anak{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid #eef1f0;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .baris-anak:last-child{border-bottom:none;}
+  .baris-anak-atas{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    gap:8px;
+  }
+  .nama-anak{
+    font-size:15px;
+    font-weight:600;
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .grup-status{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .btn-status{
+    border:1.5px solid #dfe5e3;
+    background:#fff;
+    color:var(--abu);
+    border-radius:10px;
+    width:34px;
+    height:34px;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .btn-status.aktif-H{background:var(--hijau-muda);border-color:var(--hijau-muda);color:#fff;}
+  .btn-status.aktif-S{background:var(--kuning);border-color:var(--kuning);color:#fff;}
+  .btn-status.aktif-I{background:var(--biru);border-color:var(--biru);color:#fff;}
+  .btn-status.aktif-A{background:var(--merah);border-color:var(--merah);color:#fff;}
+  .grup-progres{
+    display:flex;
+    gap:6px;
+    width:100%;
+    padding-left:0;
+  }
+  .btn-progres{
+    border:1.5px solid #dfe5e3;
+    background:#fff;
+    color:var(--abu);
+    border-radius:8px;
+    padding:5px 12px;
+    font-size:12px;
+    font-weight:600;
+  }
+  .btn-progres.aktif-lanjut{background:var(--hijau-muda);border-color:var(--hijau-muda);color:#fff;}
+  .btn-progres.aktif-ulang{background:var(--kuning);border-color:var(--kuning);color:#fff;}
+  .kosong{
+    text-align:center;
+    color:var(--abu);
+    padding:30px 10px;
+    font-size:14px;
+  }
+  .ringkasan{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    font-size:13px;
+    margin-bottom:4px;
+  }
+  .pil{
+    padding:5px 10px;
+    border-radius:20px;
+    background:#eef3f1;
+    color:var(--hijau);
+    font-weight:600;
+  }
+  nav.tab-bawah{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:#fff;
+    display:flex;
+    border-top:1px solid #e4e8e6;
+    z-index:10;
+  }
+  nav.tab-bawah button{
+    flex:1;
+    border:none;
+    background:none;
+    padding:10px 2px 8px;
+    font-size:11px;
+    color:var(--abu);
+    font-family:inherit;
+  }
+  nav.tab-bawah button.aktif{
+    color:var(--hijau);
+    font-weight:700;
+  }
+  .tombol{
+    background:var(--hijau);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:11px 16px;
+    font-size:14px;
+    font-weight:600;
+    font-family:inherit;
+    width:100%;
+  }
+  .tombol.sekunder{
+    background:#eef3f1;
+    color:var(--hijau);
+  }
+  .tombol.bahaya{
+    background:#fdeceb;
+    color:var(--merah);
+  }
+  textarea, input[type=text], select.penuh{
+    width:100%;
+    border:1.5px solid #dfe5e3;
+    border-radius:10px;
+    padding:10px;
+    font-size:14px;
+    font-family:inherit;
+    margin-bottom:10px;
+    background:#fff;
+    color:var(--teks);
+  }
+  textarea{min-height:100px;resize:vertical;}
+  label{font-size:13px;color:var(--abu);display:block;margin-bottom:4px;}
+  .daftar-kelola{margin-top:10px;}
+  .baris-kelola{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 0;
+    border-bottom:1px solid #eef1f0;
+  }
+  .baris-kelola input[type=text]{margin-bottom:0;flex:1;}
+  .baris-kelola input.kecil{flex:0 0 110px;}
+  .x-hapus{
+    color:var(--merah);
+    background:none;
+    border:none;
+    font-size:18px;
+    padding:4px 8px;
+  }
+  .judul-kartu{font-size:14px;font-weight:700;margin:0 0 10px;color:var(--hijau);}
+  .catatan-kecil{font-size:12px;color:var(--abu);margin-top:6px;}
+  #tampilSetup .kartu{max-width:420px;margin:40px auto;}
+  .catatan-materi{
+    padding:10px 0;
+    border-bottom:1px solid #eef1f0;
+  }
+  .catatan-materi:last-child{border-bottom:none;}
+  .catatan-materi .judul-materi{font-weight:700;font-size:14px;margin-bottom:2px;}
+  .catatan-materi .meta-materi{font-size:11px;color:var(--abu);margin-bottom:4px;}
+  .catatan-materi .isi-materi{font-size:13px;white-space:pre-wrap;}
+</style>
+</head>
+<body>
+
+<div id="tampilSetup" style="display:none;">
+  <main style="padding-top:40px;">
+    <div class="kartu">
+      <p class="judul-kartu">Hubungkan ke Firebase</p>
+      <p class="catatan-kecil">Tempel konfigurasi Firebase (dari Firebase Console &gt; Project settings &gt; Your apps) dalam bentuk JSON di bawah ini, lalu simpan. Cukup sekali di tiap HP/perangkat.</p>
+      <textarea id="inputKonfigurasi" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...", ...}'></textarea>
+      <button class="tombol" onclick="simpanKonfigurasi()">Simpan & Mulai</button>
+    </div>
+  </main>
+</div>
+
+<div id="tampilUtama" style="display:none;">
+  <header>
+    <h1>Presensi Mengaji</h1>
+    <div class="sub-header">
+      <input type="date" id="inputTanggal" />
+      <select id="pilihGuru">
+        <option value="">Guru mengisi...</option>
+      </select>
+    </div>
+    <div class="status-koneksi" id="statusKoneksi">Menyambungkan...</div>
+  </header>
+
+  <main>
+    <div id="viewCeklis">
+      <div class="kartu">
+        <div class="ringkasan" id="ringkasanHari"></div>
+        <p class="catatan-kecil">H/S/I/A = Hadir/Sakit/Izin/Alpa. Saat Hadir, bisa tandai Lanjut atau Ulang.</p>
+      </div>
+      <div class="kartu" id="kartuDaftarAnak">
+        <div class="kosong">Memuat data anak...</div>
+      </div>
+    </div>
+
+    <div id="viewMateri" style="display:none;">
+      <div class="kartu">
+        <p class="judul-kartu">Catat Materi Bimbel Hari Ini</p>
+        <label>Kelompok / Kelas</label>
+        <input type="text" id="inputKelompokMateri" list="daftarSarankanKelompok" placeholder="Contoh: Kelas 3" />
+        <datalist id="daftarSarankanKelompok"></datalist>
+        <label>Materi yang diajarkan</label>
+        <textarea id="inputIsiMateri" placeholder="Contoh: Perkalian pecahan, latihan soal halaman 24"></textarea>
+        <button class="tombol" onclick="simpanMateri()">Simpan Materi</button>
+      </div>
+      <div class="kartu">
+        <p class="judul-kartu">Materi Tanggal Ini</p>
+        <div id="daftarMateriHariIni"><div class="kosong">Memuat...</div></div>
+      </div>
+    </div>
+
+    <div id="viewRekap" style="display:none;">
+      <div class="kartu">
+        <p class="judul-kartu">Rekap 7 Hari Terakhir</p>
+        <div id="isiRekap"><div class="kosong">Memuat...</div></div>
+      </div>
+    </div>
+
+    <div id="viewKelola" style="display:none;">
+      <div class="kartu">
+        <p class="judul-kartu">Tambah Anak (satu per baris)</p>
+        <textarea id="inputTambahMassal" placeholder="Contoh:&#10;Ahmad Fauzi&#10;Siti Aisyah&#10;Muhammad Rizki"></textarea>
+        <button class="tombol" onclick="tambahAnakMassal()">Tambahkan</button>
+        <p class="catatan-kecil">Kelompok/kelas anak diatur satu-satu lewat kolom kecil di sebelah nama pada daftar di bawah.</p>
+      </div>
+      <div class="kartu">
+        <p class="judul-kartu">Tambah Nama Guru</p>
+        <input type="text" id="inputNamaGuruBaru" placeholder="Nama guru" />
+        <button class="tombol sekunder" onclick="tambahGuru()">Tambah Guru</button>
+      </div>
+      <div class="kartu">
+        <p class="judul-kartu">Daftar Anak</p>
+        <p class="catatan-kecil">Kolom kedua = kelompok/kelas (isi bebas, misal "Kelas 3"). Dipakai untuk pengelompokan di Ceklis dan pilihan materi bimbel.</p>
+        <div class="daftar-kelola" id="daftarKelolaAnak"></div>
+      </div>
+      <div class="kartu">
+        <p class="judul-kartu">Daftar Guru</p>
+        <div class="daftar-kelola" id="daftarKelolaGuru"></div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="tab-bawah">
+    <button id="tabCeklis" class="aktif" onclick="pindahTab('ceklis')">✓<br>Ceklis</button>
+    <button id="tabMateri" onclick="pindahTab('materi')">📘<br>Materi</button>
+    <button id="tabRekap" onclick="pindahTab('rekap')">📊<br>Rekap</button>
+    <button id="tabKelola" onclick="pindahTab('kelola')">⚙️<br>Kelola</button>
+  </nav>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+// ====== KONFIGURASI & INISIALISASI ======
+let db = null;
+let lepasPantauPresensi = null;
+let lepasPantauMateri = null;
+const KUNCI_KONFIG = 'presensiMengaji_konfigFirebase';
+
+function mulai() {
+  const tersimpan = localStorage.getItem(KUNCI_KONFIG);
+  if (!tersimpan) {
+    document.getElementById('tampilSetup').style.display = 'block';
+    return;
+  }
+  try {
+    const konfigurasi = JSON.parse(tersimpan);
+    firebase.initializeApp(konfigurasi);
+    db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+    document.getElementById('tampilUtama').style.display = 'block';
+    inisialisasiTanggal();
+    pantauGuru();
+    pantauAnak();
+    pantauKoneksi();
+  } catch (e) {
+    alert('Konfigurasi tidak valid: ' + e.message);
+    localStorage.removeItem(KUNCI_KONFIG);
+    document.getElementById('tampilSetup').style.display = 'block';
+  }
+}
+
+function simpanKonfigurasi() {
+  const teks = document.getElementById('inputKonfigurasi').value.trim();
+  if (!teks) return;
+  try {
+    JSON.parse(teks);
+  } catch (e) {
+    alert('Format JSON tidak valid. Pastikan disalin lengkap dari Firebase Console.');
+    return;
+  }
+  localStorage.setItem(KUNCI_KONFIG, teks);
+  location.reload();
+}
+
+function pantauKoneksi() {
+  const el = document.getElementById('statusKoneksi');
+  window.addEventListener('online', () => el.textContent = 'Tersambung');
+  window.addEventListener('offline', () => el.textContent = 'Offline — tersimpan di HP, akan sinkron otomatis saat online kembali');
+  el.textContent = navigator.onLine ? 'Tersambung' : 'Offline — tersimpan di HP, akan sinkron otomatis saat online kembali';
+}
+
+// ====== STATE ======
+let daftarAnak = [];      // [{id, nama, kelompok}]
+let daftarGuru = [];       // [{id, nama}]
+let presensiHariIni = {};  // { muridId: {status, progres, guru, waktu} }
+let tanggalDipilih = '';
+
+function tanggalHariIni() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+  const lokal = new Date(d.getTime() - offset * 60000);
+  return lokal.toISOString().slice(0, 10);
+}
+
+function inisialisasiTanggal() {
+  tanggalDipilih = tanggalHariIni();
+  const input = document.getElementById('inputTanggal');
+  input.value = tanggalDipilih;
+  input.max = tanggalHariIni();
+  input.addEventListener('change', () => {
+    tanggalDipilih = input.value;
+    pantauPresensiTanggal();
+    pantauMateriTanggal();
+  });
+  pantauPresensiTanggal();
+  pantauMateriTanggal();
+}
+
+// ====== GURU ======
+function pantauGuru() {
+  db.collection('guru').orderBy('nama').onSnapshot((snap) => {
+    daftarGuru = [];
+    snap.forEach((doc) => daftarGuru.push({ id: doc.id, ...doc.data() }));
+    renderPilihanGuru();
+    renderKelolaGuru();
+  });
+}
+
+function renderPilihanGuru() {
+  const select = document.getElementById('pilihGuru');
+  const nilaiSebelumnya = select.value;
+  select.innerHTML = '<option value="">Guru mengisi...</option>' +
+    daftarGuru.map((g) => `<option value="${escHtml(g.nama)}">${escHtml(g.nama)}</option>`).join('');
+  if (daftarGuru.some((g) => g.nama === nilaiSebelumnya)) select.value = nilaiSebelumnya;
+}
+
+function tambahGuru() {
+  const input = document.getElementById('inputNamaGuruBaru');
+  const nama = input.value.trim();
+  if (!nama) return;
+  db.collection('guru').add({ nama, dibuatPada: Date.now() });
+  input.value = '';
+}
+
+function hapusGuru(id) {
+  if (!confirm('Hapus guru ini dari daftar?')) return;
+  db.collection('guru').doc(id).delete();
+}
+
+function renderKelolaGuru() {
+  const wrap = document.getElementById('daftarKelolaGuru');
+  if (!daftarGuru.length) {
+    wrap.innerHTML = '<div class="kosong">Belum ada guru ditambahkan.</div>';
+    return;
+  }
+  wrap.innerHTML = daftarGuru.map((g) => `
+    <div class="baris-kelola">
+      <span style="flex:1;">${escHtml(g.nama)}</span>
+      <button class="x-hapus" onclick="hapusGuru('${g.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+// ====== ANAK ======
+function pantauAnak() {
+  db.collection('anak').orderBy('nama').onSnapshot((snap) => {
+    daftarAnak = [];
+    snap.forEach((doc) => daftarAnak.push({ id: doc.id, ...doc.data() }));
+    renderCeklisAnak();
+    renderKelolaAnak();
+    renderSaranKelompok();
+  });
+}
+
+function tambahAnakMassal() {
+  const teks = document.getElementById('inputTambahMassal').value;
+  const namaList = teks.split('\n').map((s) => s.trim()).filter(Boolean);
+  if (!namaList.length) return;
+  const batch = db.batch();
+  namaList.forEach((nama) => {
+    const ref = db.collection('anak').doc();
+    batch.set(ref, { nama, kelompok: '', dibuatPada: Date.now() });
+  });
+  batch.commit().then(() => {
+    document.getElementById('inputTambahMassal').value = '';
+  });
+}
+
+function hapusAnak(id) {
+  if (!confirm('Hapus anak ini dari daftar? Riwayat presensi yang sudah tersimpan tidak terhapus.')) return;
+  db.collection('anak').doc(id).delete();
+}
+
+function ubahKelompokAnak(id, nilai) {
+  db.collection('anak').doc(id).set({ kelompok: nilai.trim() }, { merge: true });
+}
+
+function renderKelolaAnak() {
+  const wrap = document.getElementById('daftarKelolaAnak');
+  if (!daftarAnak.length) {
+    wrap.innerHTML = '<div class="kosong">Belum ada anak ditambahkan.</div>';
+    return;
+  }
+  wrap.innerHTML = daftarAnak.map((a) => `
+    <div class="baris-kelola">
+      <span style="flex:1;">${escHtml(a.nama)}</span>
+      <input type="text" class="kecil" value="${escHtml(a.kelompok || '')}" placeholder="Kelompok"
+        onchange="ubahKelompokAnak('${a.id}', this.value)" />
+      <button class="x-hapus" onclick="hapusAnak('${a.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function renderSaranKelompok() {
+  const daftar = [...new Set(daftarAnak.map((a) => (a.kelompok || '').trim()).filter(Boolean))].sort();
+  const dl = document.getElementById('daftarSarankanKelompok');
+  dl.innerHTML = daftar.map((k) => `<option value="${escHtml(k)}"></option>`).join('');
+}
+
+// ====== PRESENSI ======
+function pantauPresensiTanggal() {
+  if (lepasPantauPresensi) lepasPantauPresensi();
+  const refDok = db.collection('presensi').doc(tanggalDipilih);
+  lepasPantauPresensi = refDok.onSnapshot((doc) => {
+    presensiHariIni = (doc.exists && doc.data().entri) ? doc.data().entri : {};
+    renderCeklisAnak();
+  });
+}
+
+function setStatus(muridId, status) {
+  const guru = document.getElementById('pilihGuru').value;
+  const entriSaatIni = presensiHariIni[muridId] || {};
+  const statusBaru = entriSaatIni.status === status ? null : status; // tap lagi = batalkan
+
+  const refDok = db.collection('presensi').doc(tanggalDipilih);
+  const kunci = `entri.${muridId}`;
+  if (statusBaru === null) {
+    refDok.set({ [kunci]: firebase.firestore.FieldValue.delete() }, { merge: true });
+  } else {
+    refDok.set({
+      [kunci]: {
+        status: statusBaru,
+        progres: statusBaru === 'H' ? (entriSaatIni.progres || null) : null,
+        guru: guru || null,
+        waktu: Date.now()
+      }
+    }, { merge: true });
+  }
+}
+
+function setProgres(muridId, progres) {
+  const guru = document.getElementById('pilihGuru').value;
+  const entriSaatIni = presensiHariIni[muridId] || {};
+  if (entriSaatIni.status !== 'H') return; // hanya berlaku saat Hadir
+  const progresBaru = entriSaatIni.progres === progres ? null : progres;
+
+  const refDok = db.collection('presensi').doc(tanggalDipilih);
+  const kunci = `entri.${muridId}`;
+  refDok.set({
+    [kunci]: { ...entriSaatIni, progres: progresBaru, guru: guru || entriSaatIni.guru || null, waktu: Date.now() }
+  }, { merge: true });
+}
+
+function renderCeklisAnak() {
+  const wrap = document.getElementById('kartuDaftarAnak');
+  if (!daftarAnak.length) {
+    wrap.innerHTML = '<div class="kosong">Belum ada anak. Tambahkan dulu lewat tab Kelola.</div>';
+    return;
+  }
+
+  const kelompokUrut = [...new Set(daftarAnak.map((a) => (a.kelompok || '').trim()))].sort((x, y) => {
+    if (!x) return 1;
+    if (!y) return -1;
+    return x.localeCompare(y);
+  });
+
+  let html = '';
+  kelompokUrut.forEach((kel) => {
+    const anggota = daftarAnak.filter((a) => (a.kelompok || '').trim() === kel);
+    html += `<div class="label-kelompok">${kel ? escHtml(kel) : 'Belum dikelompokkan'}</div>`;
+    html += anggota.map((a) => {
+      const entri = presensiHariIni[a.id] || {};
+      const status = entri.status || null;
+      const progres = entri.progres || null;
+      return `
+        <div class="baris-anak">
+          <div class="baris-anak-atas">
+            <span class="nama-anak">${escHtml(a.nama)}</span>
+            <div class="grup-status">
+              <button class="btn-status ${status === 'H' ? 'aktif-H' : ''}" onclick="setStatus('${a.id}','H')">H</button>
+              <button class="btn-status ${status === 'S' ? 'aktif-S' : ''}" onclick="setStatus('${a.id}','S')">S</button>
+              <button class="btn-status ${status === 'I' ? 'aktif-I' : ''}" onclick="setStatus('${a.id}','I')">I</button>
+              <button class="btn-status ${status === 'A' ? 'aktif-A' : ''}" onclick="setStatus('${a.id}','A')">A</button>
+            </div>
+          </div>
+          ${status === 'H' ? `
+          <div class="grup-progres">
+            <button class="btn-progres ${progres === 'lanjut' ? 'aktif-lanjut' : ''}" onclick="setProgres('${a.id}','lanjut')">Lanjut</button>
+            <button class="btn-progres ${progres === 'ulang' ? 'aktif-ulang' : ''}" onclick="setProgres('${a.id}','ulang')">Ulang</button>
+          </div>` : ''}
+        </div>
+      `;
+    }).join('');
+  });
+
+  wrap.innerHTML = html;
+  renderRingkasanHari();
+}
+
+function renderRingkasanHari() {
+  const wrap = document.getElementById('ringkasanHari');
+  const nilai = Object.values(presensiHariIni);
+  const hitung = (kode) => nilai.filter((e) => e.status === kode).length;
+  const belum = daftarAnak.length - nilai.length;
+  wrap.innerHTML = `
+    <span class="pil">Hadir: ${hitung('H')}</span>
+    <span class="pil">Sakit: ${hitung('S')}</span>
+    <span class="pil">Izin: ${hitung('I')}</span>
+    <span class="pil">Alpa: ${hitung('A')}</span>
+    <span class="pil">Belum diisi: ${belum}</span>
+  `;
+}
+
+// ====== MATERI BIMBEL ======
+function idMateri(tanggal, kelompok) {
+  const kelompokAman = kelompok.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  return `${tanggal}__${kelompokAman}`;
+}
+
+function simpanMateri() {
+  const kelompok = document.getElementById('inputKelompokMateri').value.trim();
+  const isi = document.getElementById('inputIsiMateri').value.trim();
+  const guru = document.getElementById('pilihGuru').value;
+  if (!kelompok) { alert('Isi nama kelompok/kelas dulu.'); return; }
+  if (!isi) { alert('Isi materinya dulu.'); return; }
+
+  db.collection('materiBimbel').doc(idMateri(tanggalDipilih, kelompok)).set({
+    tanggal: tanggalDipilih,
+    kelompok,
+    materi: isi,
+    guru: guru || null,
+    waktu: Date.now()
+  }, { merge: true }).then(() => {
+    document.getElementById('inputIsiMateri').value = '';
+  });
+}
+
+function hapusMateri(id) {
+  if (!confirm('Hapus catatan materi ini?')) return;
+  db.collection('materiBimbel').doc(id).delete();
+}
+
+function pantauMateriTanggal() {
+  if (lepasPantauMateri) lepasPantauMateri();
+  lepasPantauMateri = db.collection('materiBimbel')
+    .where('tanggal', '==', tanggalDipilih)
+    .onSnapshot((snap) => {
+      const daftar = [];
+      snap.forEach((doc) => daftar.push({ id: doc.id, ...doc.data() }));
+      daftar.sort((a, b) => a.kelompok.localeCompare(b.kelompok));
+      renderDaftarMateri(daftar);
+    });
+}
+
+function renderDaftarMateri(daftar) {
+  const wrap = document.getElementById('daftarMateriHariIni');
+  if (!daftar.length) {
+    wrap.innerHTML = '<div class="kosong">Belum ada materi dicatat untuk tanggal ini.</div>';
+    return;
+  }
+  wrap.innerHTML = daftar.map((m) => `
+    <div class="catatan-materi">
+      <div class="judul-materi">${escHtml(m.kelompok)}</div>
+      <div class="meta-materi">${m.guru ? escHtml(m.guru) + ' · ' : ''}${formatTanggalIndo(m.tanggal)}</div>
+      <div class="isi-materi">${escHtml(m.materi)}</div>
+      <button class="x-hapus" style="margin-top:4px;" onclick="hapusMateri('${m.id}')">Hapus</button>
+    </div>
+  `).join('');
+}
+
+// ====== NAVIGASI TAB ======
+function pindahTab(nama) {
+  ['ceklis', 'materi', 'rekap', 'kelola'].forEach((t) => {
+    document.getElementById('view' + kapital(t)).style.display = (t === nama) ? 'block' : 'none';
+    document.getElementById('tab' + kapital(t)).classList.toggle('aktif', t === nama);
+  });
+  if (nama === 'rekap') muatRekap();
+}
+function kapital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ====== REKAP ======
+async function muatRekap() {
+  const wrap = document.getElementById('isiRekap');
+  wrap.innerHTML = '<div class="kosong">Memuat...</div>';
+  const tanggalList = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const offset = d.getTimezoneOffset();
+    const lokal = new Date(d.getTime() - offset * 60000);
+    tanggalList.push(lokal.toISOString().slice(0, 10));
+  }
+  const hasil = await Promise.all(
+    tanggalList.map((tgl) => db.collection('presensi').doc(tgl).get())
+  );
+  wrap.innerHTML = tanggalList.map((tgl, i) => {
+    const doc = hasil[i];
+    const entri = (doc.exists && doc.data().entri) ? doc.data().entri : {};
+    const nilai = Object.values(entri);
+    const hitung = (kode) => nilai.filter((e) => e.status === kode).length;
+    const belum = daftarAnak.length - nilai.length;
+    return `
+      <div class="baris-kelola" style="display:block;padding:10px 0;">
+        <strong>${formatTanggalIndo(tgl)}</strong>
+        <div class="ringkasan" style="margin-top:6px;">
+          <span class="pil">Hadir: ${hitung('H')}</span>
+          <span class="pil">Sakit: ${hitung('S')}</span>
+          <span class="pil">Izin: ${hitung('I')}</span>
+          <span class="pil">Alpa: ${hitung('A')}</span>
+          <span class="pil">Belum: ${belum}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatTanggalIndo(iso) {
+  const [th, bl, hr] = iso.split('-');
+  const namaBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  return `${hr} ${namaBulan[parseInt(bl,10)-1]} ${th}`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ====== SERVICE WORKER ======
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+mulai();
+</script>
+</body>
+</html>
